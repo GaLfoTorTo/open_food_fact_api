@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use App\Domain\Products\Models\Product;
-use App\Domain\Products\Enums\ProductStatus;
+use App\Domain\Product\Models\Product;
+use App\Domain\Product\Enums\ProductStatus;
 
 class ProductTest extends TestCase
 {

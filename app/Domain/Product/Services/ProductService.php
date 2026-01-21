@@ -1,22 +1,34 @@
 <?php
 
-namespace App\Domain\Products\Services;
+namespace App\Domain\Product\Services;
 
-use App\Domain\Products\Models\Product;
-use App\Domain\Products\Models\ImportHistory;
-use App\Domain\Products\Enums\ProductStatus;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Domain\Product\Enums\ProductStatusEnum;
+use App\Domain\Product\Models\Product;
+use App\Domain\History\Models\History;
 
 class ProductService
 {
     private $baseUrl  = 'https://challenges.coode.sh/food/data/json/';
+    private $limit = 100;
+    private $httpService;
+
+    public function __construct()
+    {
+        $this->httpService = Http::withOptions([
+                'verify' => false,
+                'timeout' => 60,
+                'connect_timeout' => 30,
+            ]);
+    }
 
     //FUNÇÃO DE IMPORTAÇÃO DE PRODUTOS
     public function importProducts(): array
     {   
         //INICIALIZAR HISTORICO DE IMPORTACAO
-        $history = ImportHistory::create([
+        $history = History::create([
             'started_at' => now(),
             'status' => 'running'
         ]);
@@ -28,10 +40,10 @@ class ProductService
             
             //IMPORTAR ARQUIVOS
             foreach ($files as $file) {
-                $imported = $this->importFromFile($file);
+                $imported = $this->importFile($file);
                 $total += $imported;
                 
-                if ($total >= 100) {
+                if ($total >= $this->limit) {
                     break;
                 }
             }
@@ -59,45 +71,64 @@ class ProductService
     }
 
     //FUNÇÃO DE CRIAÇÃO OU ATUALIZAÇÃO DE PRODUTO
-    public function createOrUpdate(array $product): array
+    public function createOrUpdate(array $data): array
     {
         $productData = array_merge($data, [
             'imported_t' => now(),
-            'status' => $data['status'] ?? ProductStatus::DRAFT,
+            'status' => $data['status'] ?? ProductStatusEnum::DRAFT,
         ]);
         
-        Product::updateOrCreate(
+        $newProduct = Product::updateOrCreate(
             ['code' => $data['code']],
             $productData
         );
+
+        return $newProduct->toArray();
     }
+
     //FUNÇÃO DE BUSCA DE ARQUIVOS DE IMPORTAÇÃO
     private function getFileList(): array
     {
-        $resp = Http::get($this->baseUrl . 'index.txt');
+        $resp = $this->httpService->get($this->baseUrl . 'index.txt');
         return array_slice(explode("\n", $resp->body()), 0, 10);
     }
 
     //FUNÇÃO DE REGISTRO DE PRODUTO IMPORTADO
     private function importFile(string $file):int
     {
-        //BUSCAR PRODUTO
-        $resp = Http::get($this->baseUrl . $filename);
-        $content = gzdecode($response->body());
-        $lines = explode("\n", $content);
-        //CONTADOR DE PRODUTOS IMPORTADOS
-        $imported = 0;
+        //CAMINHO PARA ARQUIVO BAIXADO
+        $tempPath = storage_path('app/tmp_' . basename($file));
 
-        foreach (array_slice($lines, 0, 100) as $line) {
-            if (empty($line)) continue;
-            //DECODIFICAR PRODUTO    
+        //BAIXAR ARQUIVO
+        file_put_contents(
+            $tempPath,
+            $this->httpService->get($this->baseUrl . $file)->body()
+        );
+        
+        $imported = 0;
+        $handle = gzopen($tempPath, 'rb');
+        //VERIFICAR DE ABERTURA DE ARQUIVO
+        if (!$handle) {
+            throw new \RuntimeException("Não foi possível abrir o arquivo de importação: {$file}");
+        }
+        //LEITURA DE ARQUIVO
+        while (!gzeof($handle) && $imported < $this->limit) {
+            $line = gzgets($handle);
+
+            if (!$line) continue;
+
             $data = json_decode($line, true);
-            if ($data) {
-                $dataForm = $this->convertTimestamps($data);
-                $this->createOrUpdate($dataForm);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $data = $this->convertTimestamps($data);
+                $this->createOrUpdate($data);
                 $imported++;
             }
         }
+
+        //FECHAR E LIMPAR ARQUIVO BAIXADO
+        gzclose($handle);
+        unlink($tempPath); 
         
         return $imported;
     }

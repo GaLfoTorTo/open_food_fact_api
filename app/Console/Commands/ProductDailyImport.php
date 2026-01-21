@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Domain\Products\Services\ProductService;
+use App\Domain\Product\Services\ProductService;
 
 class ProductDailyImport extends Command
 {
@@ -12,7 +12,7 @@ class ProductDailyImport extends Command
      *
      * @var string
      */
-    protected $signature = 'app:product-daily-import';
+    protected $signature = 'products:import';
 
     /**
      * The console command description.

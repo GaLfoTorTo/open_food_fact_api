@@ -31,9 +31,9 @@ return new class extends Migration
             $table->text("ingredients_text")->nullable();
             $table->string("traces")->nullable();
             $table->string("serving_size")->nullable();
-            $table->double("serving_quantity",10,2)->nullable();
-            $table->integer("nutriscore_score")->nullable();
-            $table->string("nutriscore_grade", 1)->nullable();
+            $table->string("serving_quantity")->nullable();
+            $table->string("nutriscore_score")->nullable();
+            $table->string("nutriscore_grade")->nullable();
             $table->string("main_category");
             $table->text("image_url")->nullable();
         });

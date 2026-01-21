@@ -2,15 +2,15 @@
 
 namespace App\Domain\Product\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 use App\Domain\Product\Enums\ProductStatusEnum;
 
 class Product extends Model
 {
     protected $table = "products";
     protected $collection = 'products';
-    protected $timestamps = false;
-    private $fillable = [
+    public $timestamps = false;
+    protected $fillable = [
         "code",
         "status",
         "url",

@@ -6,5 +6,5 @@ enum HistoryStatusEnum: string
 {
     case RUNNUNG = 'running';
     case COMPLETED = 'completed';
-    case FALIED = 'falied';
+    case FAILED = 'failed';
 }

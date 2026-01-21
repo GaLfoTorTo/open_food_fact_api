@@ -2,14 +2,14 @@
 
 namespace App\Domain\History\Models;
 
-use Jenssegers\Mongodb\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 use App\Domain\History\Enums\HistoryStatusEnum;
 
 class History extends Model
 {
     protected $table = "history";
     protected $collection = 'history';
-    private $fillable = [
+    protected $fillable = [
         "total",
         "status",
         "error",
@@ -18,8 +18,8 @@ class History extends Model
     ];
 
     protected $casts = [
-        'starterd_at' => 'timestamps',
-        'completed_at' => 'timestamps',
+        'starterd_at' => 'datetime',
+        'completed_at' => 'datetime',
         'status' => HistoryStatusEnum::class,
     ];
 }

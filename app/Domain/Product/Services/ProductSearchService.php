@@ -1,6 +1,11 @@
 <?php
 
 namespace App\Domain\Product\Services;
+
+use Illuminate\Support\Collection;
+use Elasticsearch\ClientBuilder;
+use App\Domain\Product\Models\Product;
+
 class ProductSearchService
 {   
     //FUNÇÃO DE PESQUISA COM ELETRIC SEARCH
