@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('code', 50)->unique();
             $table->enum("status",["draft","trash","published"])->default("draft");
-            $table->timestamp("imported_t");
-            $table->timestamp("created_t");
-            $table->timestamp("last_modified_t");
+            $table->dateTime("imported_t");
+            $table->dateTime("created_t");
+            $table->dateTime("last_modified_t");
             $table->string("url");
             $table->string("creator");
             $table->string("product_name");

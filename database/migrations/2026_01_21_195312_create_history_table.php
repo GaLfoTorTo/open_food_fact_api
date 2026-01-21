@@ -16,8 +16,8 @@ return new class extends Migration
             $table->integer("total")->default(0);
             $table->enum("status",["running","completed","failed"])->default("running");
             $table->text("error")->nullable();
-            $table->timestamp('started_at')->nullable();
-            $table->timestamp('completed_at')->nullable();
+            $table->dateTime('started_at')->nullable();
+            $table->dateTime('completed_at')->nullable();
             $table->timestamps();
         });
     }

@@ -88,7 +88,7 @@ class ProductService
         //CONTADOR DE PRODUTOS IMPORTADOS
         $imported = 0;
 
-        foreach (array_slice($lines, 0, 50) as $line) {
+        foreach (array_slice($lines, 0, 100) as $line) {
             if (empty($line)) continue;
             //DECODIFICAR PRODUTO    
             $data = json_decode($line, true);
