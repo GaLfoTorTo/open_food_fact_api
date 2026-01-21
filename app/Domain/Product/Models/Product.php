@@ -3,10 +3,12 @@
 namespace App\Domain\Product\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Domain\Product\Enums\ProductStatusEnum;
 
 class Product extends Model
 {
+    use HasFacture;
     protected $table = "products";
     protected $collection = 'products';
     public $timestamps = false;
