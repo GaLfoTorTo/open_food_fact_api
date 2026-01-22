@@ -22,7 +22,7 @@ API RESTFUL para gerenciamento de produtos alimentícios, desenvolvida como solu
 - 2GB de RAM livre para containers
 - Portas 8000 e 3306 disponíveis
 
-## ⚡ Instalação
+## Instalação
 
 1. Clone o repositório
 ```bash
@@ -46,7 +46,7 @@ php artisan key:generate
 
 5. Execute migrações
 ```bash
-php artisan migrate
+php artisan migrate --seed
 ```
 
 6. Inicie o servidor
