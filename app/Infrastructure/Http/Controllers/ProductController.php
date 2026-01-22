@@ -14,10 +14,12 @@ class ProductController extends Controller
 {
 
     private $productService;
+    private $searchService;
 
     public function __construct()
     {
         $this->productService = new ProductService();
+        $this->searchService = new ProductSearchService();
     }
 
     /* 
@@ -46,6 +48,39 @@ class ProductController extends Controller
             return response()->json([
                 "message" => "Nehnum produto encontrado"
             ], 404);
+        }
+    }
+
+    /**
+     * FUNÇÃO DE BUSCA DE PRODUTOS AVANÇADA
+     */
+    public function search(Request $request)
+    {
+        try {
+            $query = $request->get('q', '');
+            
+            if (empty($query)) {
+                return response()->json([
+                    'message' => 'Parâmetro de busca (q) é obrigatório'
+                ], 400);
+            }
+            
+            $products = $searchService->search($query);
+            
+            return response()->json([
+                'data' => $products,
+                'meta' => [
+                    'query' => $query,
+                    'total' => $products->count(),
+                    'search_engine' => 'elasticsearch'
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            //FALLBACK DE BUSCA NO DB CASO ELASTICSEARCH FALHE
+            \Log::error('ElasticSearch error: ' . $e->getMessage());            
+            return response()->json([
+                'message' => "Houve um erro ao buscar os produtos. Tente novamente!",
+            ], 500);
         }
     }
 
