@@ -1,6 +1,6 @@
 # OPEN FOOD FACT API
 
-API RESTful para gerenciamento de produtos alimentícios, desenvolvida como solução para o desafio técnico da Coodesh. A aplicação integra com dados do Open Food Facts. Importação automatica, Listagem, Visualização, Atualização e Deleção de Produtos em base de dados interna.
+API RESTFUL para gerenciamento de produtos alimentícios, desenvolvida como solução para o desafio técnico da Coodesh. A aplicação integra com dados do Open Food Facts. Importação automatica, Listagem, Visualização, Atualização e Deleção de Produtos em base de dados interna.
 
 ## Tecnologias
 

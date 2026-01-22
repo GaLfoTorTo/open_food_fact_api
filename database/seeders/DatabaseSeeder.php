@@ -17,10 +17,12 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        DB::table('users')->insert([
+        $user = \App\Domain\User\Models\User::create([
             'name' => 'Test User',
             'email' => 'teste@example.com',
             'password' => bcrypt('teste@123'),
         ]);
+
+        $token = $user->createToken('test-token')->plainTextToken;
     }
 }

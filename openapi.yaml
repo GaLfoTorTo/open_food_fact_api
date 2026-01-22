@@ -1,0 +1,476 @@
+# openapi.yaml
+openapi: 3.0.0
+info:
+  title: Open Food Facts API
+  version: 1.0.0
+  description: API RESTFUL para gerenciamento de produtos alimentícios.
+
+servers:
+  - url: http://localhost:{port}
+    description: Servidor local
+
+paths:
+  /api:
+    get:
+      summary: Status da API
+      description: Verifica status da API, conexão com banco de dados e última execução do CRON
+      tags:
+        - Health Check
+      responses:
+        '200':
+          description: API online e funcionando
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "online"
+                  database:
+                    type: string
+                    example: "Conectado"
+                  last_cron:
+                    type: string
+                    example: "2024-01-21 02:00:00"
+                  uptime:
+                    type: string
+                    example: "24 hours"
+                  memory_usage:
+                    type: string
+                    example: "45.2 MB"
+  /api/historic:
+    get:
+      summary: Listar Históricos de CRON
+      description: Retorna lista paginada históricos de execução de importação automática (CRON).
+      tags:
+        - Historico
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: Quantidade de históricos por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista de históricos paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/History'
+                      per_page:
+                        type: integer
+                        example: 20
+                      total:
+                        type: integer
+                        example: 100
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/products:
+    get:
+      summary: Listar produtos
+      description: Retorna lista paginada de produtos (excluindo produtos com status 'trash')
+      tags:
+        - Produtos
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: per_page
+          in: query
+          description: Quantidade de produtos por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Lista de produtos paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Product'
+                      per_page:
+                        type: integer
+                        example: 20
+                      total:
+                        type: integer
+                        example: 100
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/products/{code}:
+    get:
+      summary: Buscar produto por código
+      description: Retorna detalhes de um produto específico
+      tags:
+        - Produtos
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código do produto (barcode)
+          schema:
+            type: string
+            example: "0000000000017"
+      responses:
+        '200':
+          description: Produto encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produto nao encontrado"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+
+  put:
+      summary: Atualizar produto
+      description: Atualiza informações de um produto existente
+      tags:
+        - Produtos
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código do produto (barcode)
+          schema:
+            type: string
+            example: "0000000000017"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produto atualizado com sucesso!"
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Produto nao encontrado"
+        '500':
+          $ref: '#/components/responses/ServerError'
+  delete:
+    summary: Excluir produto (mover para trash)
+    description: Muda status do produto para 'trash' (exclusão lógica)
+    tags:
+      - Produtos
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: code
+        in: path
+        required: true
+        description: Código do produto (barcode)
+        schema:
+          type: string
+          example: "0000000000017"
+    responses:
+      '200':
+        description: Produto movido para trash
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Produto deletado com sucesso!"
+      '401':
+        $ref: '#/components/responses/UnauthorizedError'
+      '404':
+        description: Produto não encontrado
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Produto nao encontrado"
+      '500':
+        $ref: '#/components/responses/ServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Utilize as seeder de Usuario para gerar o usuário e token de autenticação necessario para as requisições
+        Exemplo: `Authorization: Bearer 1|abcdefgh123456789`
+
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        code:
+          type: string
+          description: Código de barras do produto
+          example: "0000000000017"
+        status:
+          type: string
+          enum: [draft, trash, published]
+          example: "published"
+        imported_t:
+          type: string
+          format: date-time
+          example: "2024-01-21T02:00:00Z"
+        url:
+          type: string
+          format: uri
+          example: "https://world.openfoodfacts.org/product/0000000000017"
+        creator:
+          type: string
+          example: "securita"
+        created_t:
+          type: string
+          format: date-time
+          example: "2020-02-07T16:00:00Z"
+        last_modified_t:
+          type: string
+          format: date-time
+          example: "2020-02-07T16:00:00Z"
+        product_name:
+          type: string
+          example: "Madalenas quadradas"
+        quantity:
+          type: string
+          example: "380 g (6 x 2 u.)"
+        brands:
+          type: string
+          example: "La Cestera"
+        categories:
+          type: string
+          example: "Lanches comida, Lanches doces, Biscoitos e Bolos, Bolos, Madalenas"
+        labels:
+          type: string
+          example: "Contem gluten, Contém derivados de ovos, Contém ovos"
+        cities:
+          type: string
+          example: ""
+        purchase_places:
+          type: string
+          example: "Braga,Portugal"
+        stores:
+          type: string
+          example: "Lidl"
+        ingredients_text:
+          type: string
+          example: "farinha de trigo, açúcar, óleo vegetal de girassol, clara de ovo, ovo..."
+        traces:
+          type: string
+          example: "Frutos de casca rija,Leite,Soja,Sementes de sésamo,Produtos à base de sementes de sésamo"
+        serving_size:
+          type: string
+          example: "madalena 31.7 g"
+        serving_quantity:
+          type: number
+          format: float
+          example: 31.7
+        nutriscore_score:
+          type: integer
+          example: 17
+        nutriscore_grade:
+          type: string
+          example: "d"
+        main_category:
+          type: string
+          example: "en:madeleines"
+        image_url:
+          type: string
+          format: uri
+          example: "https://static.openfoodfacts.org/images/products/20221126/front_pt.5.400.jpg"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProductUpdate:
+      type: object
+      properties:
+        product_name:
+          type: string
+          maxLength: 255
+          example: "Novo nome do produto"
+        status:
+          type: string
+          enum: [draft, published]
+          example: "published"
+        quantity:
+          type: string
+          example: "500g"
+        brands:
+          type: string
+          example: "Nova marca"
+        categories:
+          type: string
+          example: "Novas categorias"
+        labels:
+          type: string
+          example: "Novos rótulos"
+      example:
+        product_name: "Vitória crackers atualizado"
+        status: "published"
+        quantity: "200g"
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Erro na requisição"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            product_name: ["O campo nome do produto é obrigatório"]
+
+  responses:
+    UnauthorizedError:
+      description: Token de autenticação inválido ou ausente
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthenticated."
+
+    ServerError:
+      description: Erro interno do servidor
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Houve um erro ao processar a requisição. Tente novamente!"
+
+  parameters:
+    PaginationPage:
+      name: page
+      in: query
+      description: Número da página
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    
+    PaginationPerPage:
+      name: per_page
+      in: query
+      description: Itens por página
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+tags:
+  - name: Health Check
+    description: Endpoints de verificação de status da API
+  - name: Produtos
+    description: Operações CRUD de produtos alimentícios
+  - name: Historico
+    description: Histórico de execução do CRON
