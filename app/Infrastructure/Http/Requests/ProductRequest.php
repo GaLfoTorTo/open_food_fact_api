@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infraestructure\Http\Requests;
+namespace App\Infrastructure\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -29,15 +29,11 @@ class ProductRequest extends FormRequest
             "created_t" => "required",
             "last_modified_t" => "required",
             "product_name" => "required",
-            "quantity" => "required",
-            "brands" => "required",
-            "categories" => "required",
-            "ingredients_text" => "required",
-            "main_category" => "required",
         ];
     }
 
-    public function message(){
+    public function messages(): array
+    {
         return [
             "code.required" => "O Código é obrigatório!",
             "status.required" => "O Status é obrigatório!",
@@ -46,10 +42,6 @@ class ProductRequest extends FormRequest
             "created_t.required" => "O campo é obrigatório!",
             "last_modified_t.required" => "O campo é obrigatório!",
             "product_name.required" => "O Nome do Produto é obrigatório!",
-            "quantity.required" => "A Quantidade é obrigatório!",
-            "brands.required" => "A Marca é obrigatório!",
-            "categories.required" => "Ao menos 1 Categoria deve ser informada!",
-            "main_category.required" => "A Categoria principal é obrigatório!",
         ];
     }
 }

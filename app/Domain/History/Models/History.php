@@ -8,7 +8,6 @@ use App\Domain\History\Enums\HistoryStatusEnum;
 class History extends Model
 {
     protected $table = "history";
-    protected $collection = 'history';
     protected $fillable = [
         "total",
         "status",

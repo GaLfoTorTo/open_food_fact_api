@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string("url");
             $table->string("creator");
             $table->string("product_name");
-            $table->string("quantity");
-            $table->string("brands");
+            $table->string("quantity")->nullable();
+            $table->string("brands")->nullable();
             $table->text("categories")->nullable();
             $table->text("labels")->nullable();
             $table->string("cities")->nullable();
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string("serving_quantity")->nullable();
             $table->string("nutriscore_score")->nullable();
             $table->string("nutriscore_grade")->nullable();
-            $table->string("main_category");
+            $table->string("main_category")->nullable();
             $table->text("image_url")->nullable();
         });
     }

@@ -62,7 +62,7 @@ class ProductService
             $history->update([
                 'completed_at' => now(),
                 'status' => 'failed',
-                'error_message' => $e->getMessage()
+                'error' => $e->getMessage()
             ]);
             //ALERTA DE FALHA
             Log::emergency('Falha na importação: ' . $e->getMessage());
@@ -77,13 +77,17 @@ class ProductService
             'imported_t' => now(),
             'status' => $data['status'] ?? ProductStatusEnum::DRAFT,
         ]);
-        
-        $newProduct = Product::updateOrCreate(
-            ['code' => $data['code']],
-            $productData
-        );
 
-        return $newProduct->toArray();
+        $product = Product::where('code', $data['code'])->first();
+
+        if (!empty($product)) {
+            $productData['last_modified_t'] = now();
+            $product->update($productData);
+        } else {
+            $product = Product::create($productData);
+        }
+        
+        return $product->toArray();
     }
 
     //FUNÇÃO DE BUSCA DE ARQUIVOS DE IMPORTAÇÃO

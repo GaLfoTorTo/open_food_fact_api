@@ -1,14 +1,15 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Infrastructure\Http\Controllers\HistoryController;
 use App\Infrastructure\Http\Controllers\ProductController;
 
-Route::prefix('api')->group(function () {
-    Route::get('/', [ProductController::class, 'apiDetail']);
-    
-    Route::prefix('products')->group(function () {
-        Route::get('/', [ProductController::class, 'index']);
-        Route::get('/{code}', [ProductController::class, 'show']);
-        Route::put('/{code}', [ProductController::class, 'update'])->middleware('auth:sanctum');
-        Route::delete('/{code}', [ProductController::class, 'delete'])->middleware('auth:sanctum');
-    });
+
+Route::get('/', [ProductController::class, 'status']);
+Route::get('/history', [HistoryController::class, 'index']);
+Route::prefix('products')->group(function () {
+    Route::get('/', [ProductController::class, 'index']);
+    Route::get('/{code}', [ProductController::class, 'show']);
+    Route::put('/{code}', [ProductController::class, 'update']);
+    Route::delete('/{code}', [ProductController::class, 'delete']);
 });
